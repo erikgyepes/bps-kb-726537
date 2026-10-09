@@ -224,12 +224,13 @@ addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'){if(e.key==='Escape
  else if(e.key==='j'||e.key==='k'){const cur=S.th||S.n,i=LIST.indexOf(cur),j=Math.max(0,Math.min(LIST.length-1,i<0?0:i+(e.key==='j'?1:-1)));const id=LIST[j];if(!id)return;
   nav(S.k==='ng'&&S.q?{n:id,th:''}:{th:id,n:''});el('i-'+id)?.scrollIntoView({block:'nearest'})}});
 tgI();
-const SALT=Uint8Array.from(atob('Qloi6BUOyzVers0MT9WBeA=='),c=>c.charCodeAt(0)),ITER=300000;let KEY=null;
+const SALT=Uint8Array.from(atob('zUsz7Yg5I3jAaqsntuTwdw=='),c=>c.charCodeAt(0)),ITER=300000;let KEY=null;
 async function mkKey(p){const b=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt:SALT,iterations:ITER,hash:'SHA-256'},b,{name:'AES-GCM',length:256},false,['decrypt'])}
 async function getJSON(n){const b=new Uint8Array(await (await fetch(n+'.enc')).arrayBuffer());const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(0,12)},KEY,b.slice(12));
  return JSON.parse(await new Response(new Blob([pt]).stream().pipeThrough(new DecompressionStream('gzip'))).text())}
 async function unlock(p,quiet){try{KEY=await mkKey(p);C=await getJSON('cards');localStorage.setItem('bps-pass',p);el('gate').remove();S=P();render()}
  catch(e){KEY=null;localStorage.removeItem('bps-pass');if(!quiet){el('gerr').textContent='Wrong password';el('gp').select()}}}
-const saved=localStorage.getItem('bps-pass'),hk=new URLSearchParams(location.hash.slice(1)).get('k');
-if(hk){history.replaceState(null,'',location.pathname+location.search);unlock(hk,false)}else if(saved)unlock(saved,true);setTimeout(()=>el('gp')?.focus(),50);
+function hashKey(){const hk=new URLSearchParams(location.hash.slice(1)).get('k');if(!hk)return false;history.replaceState(null,'',location.pathname+location.search);if(el('gate'))unlock(hk,false);return true}
+addEventListener('hashchange',hashKey);
+const saved=localStorage.getItem('bps-pass');if(!hashKey()&&saved)unlock(saved,true);setTimeout(()=>el('gp')?.focus(),50);
 </script></body></html>
